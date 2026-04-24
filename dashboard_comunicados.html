@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunicados - Dicatillo</title>
+    <!-- Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #ffffff; /* Fondo blanco puro */
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body { background-color: #020617; color: #f8fafc; }
+        }
+
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        .skeleton-loader {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            background-color: #f1f5f9;
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .skeleton-loader { background-color: #1e293b; }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        @media (prefers-color-scheme: dark) { ::-webkit-scrollbar-thumb { background: #334155; } }
+    </style>
+</head>
+<body class="min-h-screen antialiased">
+
+    <!-- Header Section -->
+    <header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-600 shadow-lg shadow-blue-500/30 p-2.5 rounded-2xl text-white">
+                    <i data-lucide="megaphone" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Dicatillo</h1>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">Canal Informativo</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="relative flex-1 md:w-80">
+                    <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                    <input type="text" id="searchBar" placeholder="Buscar avisos..." 
+                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-transparent border-2 focus:border-blue-500/50 rounded-xl text-sm outline-none transition-all focus:bg-white dark:focus:bg-slate-800">
+                </div>
+                <button onclick="loadData()" class="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 shadow-sm">
+                    <i data-lucide="refresh-cw" class="w-5 h-5" id="refreshIcon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-10">
+        <!-- Error Container -->
+        <div id="statusContainer" class="hidden mb-8 p-4 rounded-2xl border border-red-100 dark:border-red-900/30 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400"></div>
+
+        <!-- Single Status Indicator -->
+        <div class="flex justify-end mb-10">
+            <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 px-5 py-3 rounded-2xl flex items-center gap-4 shadow-sm">
+                <div class="flex flex-col">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Estado del Sistema</p>
+                    <h3 id="connectionStatus" class="text-sm font-bold text-green-500 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                        Conectado
+                    </h3>
+                </div>
+                <div class="w-px h-8 bg-slate-100 dark:bg-slate-800"></div>
+                <i data-lucide="wifi" class="text-blue-600 w-6 h-6 opacity-40"></i>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <i data-lucide="layout-grid" class="w-6 h-6 text-blue-600"></i>
+                Últimas Publicaciones
+            </h2>
+            <div class="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
+                <i data-lucide="info" class="w-4 h-4"></i>
+                Actualizado ahora
+            </div>
+        </div>
+
+        <!-- Grid Container -->
+        <div id="comunicadosContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Skeletons initial state -->
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-[28px] border border-slate-100 dark:border-slate-800 h-64 overflow-hidden">
+                <div class="h-6 w-1/2 skeleton-loader rounded-lg mb-6"></div>
+                <div class="h-4 w-full skeleton-loader rounded-md mb-3"></div>
+                <div class="h-4 w-full skeleton-loader rounded-md mb-3"></div>
+                <div class="h-4 w-2/3 skeleton-loader rounded-md mb-6"></div>
+                <div class="h-8 w-24 skeleton-loader rounded-xl"></div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-24 text-center">
+            <div class="bg-slate-50 dark:bg-slate-900 p-8 rounded-full mb-6">
+                <i data-lucide="search-x" class="w-16 h-16 text-slate-300"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 dark:text-slate-200">Sin resultados</h3>
+            <p class="text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">No hay avisos que coincidan con tu búsqueda.</p>
+            <button onclick="clearSearch()" class="mt-6 px-8 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">Ver todo</button>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden transform transition-all">
+            <div class="relative p-6 md:p-10">
+                <div class="flex justify-between items-start mb-6">
+                    <div id="modalBadge"></div>
+                    <button onclick="closeModal()" class="p-2 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-colors">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <h2 id="modalTitle" class="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-4 leading-tight"></h2>
+                <div class="flex items-center gap-4 mb-8">
+                    <div id="modalDate" class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2 font-medium">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                        <span></span>
+                    </div>
+                </div>
+                <div id="modalBody" class="text-slate-600 dark:text-slate-300 leading-relaxed text-lg whitespace-pre-wrap max-h-[50vh] overflow-y-auto pr-4"></div>
+                <div class="mt-10 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <button onclick="copyToClipboard()" id="btnShare" class="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-sm hover:opacity-80 transition-opacity">
+                        <i data-lucide="share-2" class="w-4 h-4"></i>
+                        COPIAR CONTENIDO
+                    </button>
+                    <button onclick="closeModal()" class="w-full sm:w-auto px-10 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl font-bold transition-all hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTNkeGLRbqTWUp6KLapVafiosdtXasPei7a4vJ7mWtYe8eDZKjbWaHIWYAyNqV_tjywqhBFJTp76dXW/pub?output=csv';
+        const PROXY_URL = 'https://api.allorigins.win/raw?url=';
+
+        let allData = [];
+
+        function initIcons() { lucide.createIcons(); }
+
+        function findField(obj, possibleNames) {
+            const keys = Object.keys(obj);
+            for (let name of possibleNames) {
+                const foundKey = keys.find(k => k.toLowerCase().trim() === name.toLowerCase());
+                if (foundKey) return obj[foundKey];
+            }
+            return "";
+        }
+
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/);
+            if (lines.length === 0) return [];
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            const result = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                let current = "";
+                let inQuotes = false;
+                const cells = [];
+                for(let char of lines[i]) {
+                    if (char === '"') inQuotes = !inQuotes;
+                    else if (char === ',' && !inQuotes) {
+                        cells.push(current.trim());
+                        current = "";
+                    } else current += char;
+                }
+                cells.push(current.trim());
+                const obj = {};
+                headers.forEach((header, index) => {
+                    let val = cells[index] || "";
+                    obj[header] = val.replace(/^"|"$/g, '').replace(/""/g, '"');
+                });
+                result.push(obj);
+            }
+            return result;
+        }
+
+        async function loadData() {
+            const container = document.getElementById('comunicadosContainer');
+            const refreshIcon = document.getElementById('refreshIcon');
+            const statusBox = document.getElementById('statusContainer');
+            const statusLabel = document.getElementById('connectionStatus');
+            
+            refreshIcon.classList.add('animate-spin');
+            statusBox.classList.add('hidden');
+            statusLabel.innerHTML = `<span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span> Sincronizando...`;
+            statusLabel.className = "text-sm font-bold text-amber-500 flex items-center gap-2";
+            
+            const timestamp = new Date().getTime();
+            const targetUrl = `${BASE_URL}&t=${timestamp}`;
+
+            try {
+                let response;
+                try {
+                    response = await fetch(targetUrl);
+                } catch (e) {
+                    response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
+                }
+
+                if (!response.ok) throw new Error("No se pudo obtener respuesta.");
+                
+                const csvText = await response.text();
+                const parsed = parseCSV(csvText);
+                
+                allData = parsed.map(item => ({
+                    Titulo: findField(item, ['titulo', 'título', 'asunto', 'tema']),
+                    Comunicado: findField(item, ['comunicado', 'mensaje', 'contenido', 'descripcion', 'descripción']),
+                    Fecha: findField(item, ['fecha', 'date', 'momento'])
+                })).filter(item => item.Titulo || item.Comunicado);
+                
+                allData.reverse(); 
+                renderData(allData);
+                
+                statusLabel.innerHTML = `<span class="w-2 h-2 bg-green-500 rounded-full"></span> Conectado`;
+                statusLabel.className = "text-sm font-bold text-green-500 flex items-center gap-2";
+                
+            } catch (error) {
+                console.error(error);
+                statusBox.innerHTML = `<p class="font-bold">Error al cargar datos:</p><p class="text-xs">${error.message}</p>`;
+                statusBox.classList.remove('hidden');
+                statusLabel.innerHTML = `<span class="w-2 h-2 bg-red-500 rounded-full"></span> Desconectado`;
+                statusLabel.className = "text-sm font-bold text-red-500 flex items-center gap-2";
+            } finally {
+                setTimeout(() => refreshIcon.classList.remove('animate-spin'), 600);
+            }
+        }
+
+        function getCategoryInfo(text, title) {
+            const content = (text + " " + title).toLowerCase();
+            if (content.includes("urgente") || content.includes("importante") || content.includes("alerta")) 
+                return { label: "Urgente", color: "red", icon: "alert-circle" };
+            if (content.includes("evento") || content.includes("reunion") || content.includes("taller")) 
+                return { label: "Evento", color: "purple", icon: "calendar" };
+            if (content.includes("pago") || content.includes("cuota") || content.includes("adm")) 
+                return { label: "Administración", color: "amber", icon: "credit-card" };
+            return { label: "General", color: "blue", icon: "info" };
+        }
+
+        function renderData(data) {
+            const container = document.getElementById('comunicadosContainer');
+            const emptyState = document.getElementById('emptyState');
+            container.innerHTML = "";
+
+            if (data.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            data.forEach(item => {
+                const info = getCategoryInfo(item.Comunicado, item.Titulo);
+                const colors = {
+                    red: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 border-red-100 dark:border-red-500/20",
+                    purple: "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 border-purple-100 dark:border-purple-500/20",
+                    amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-100 dark:border-amber-500/20",
+                    blue: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border-blue-100 dark:border-blue-500/20"
+                };
+
+                const card = document.createElement('div');
+                card.className = 'card-hover group bg-white dark:bg-slate-900 p-6 rounded-[28px] border border-slate-100 dark:border-slate-800 flex flex-col h-full cursor-pointer';
+                card.onclick = () => openModal(item, info, colors[info.color]);
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-5">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${colors[info.color]} flex items-center gap-1.5">
+                            <i data-lucide="${info.icon}" class="w-3.5 h-3.5"></i>
+                            ${info.label}
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-tight">${item.Fecha || 'Reciente'}</span>
+                    </div>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-3 line-clamp-2 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        ${item.Titulo || 'Comunicado Oficial'}
+                    </h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm line-clamp-4 mb-6 flex-grow leading-relaxed">
+                        ${item.Comunicado || 'Pulsa para ver más detalles.'}
+                    </p>
+                    <div class="flex items-center text-blue-600 dark:text-blue-400 text-[11px] font-extrabold gap-2 mt-auto">
+                        VER DETALLES 
+                        <div class="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
+                             <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            initIcons();
+        }
+
+        function openModal(item, info, badgeClass) {
+            const modal = document.getElementById('detailModal');
+            document.getElementById('modalTitle').textContent = item.Titulo || 'Comunicado';
+            document.getElementById('modalBody').textContent = item.Comunicado || '';
+            document.getElementById('modalDate').querySelector('span').textContent = item.Fecha || 'Sin fecha';
+            const badge = document.getElementById('modalBadge');
+            badge.innerHTML = `<span class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${badgeClass} border flex items-center gap-2"><i data-lucide="${info.icon}" class="w-4 h-4"></i>${info.label}</span>`;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            initIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function clearSearch() {
+            document.getElementById('searchBar').value = '';
+            renderData(allData);
+        }
+
+        document.getElementById('searchBar').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allData.filter(item => 
+                (item.Titulo || "").toLowerCase().includes(term) || 
+                (item.Comunicado || "").toLowerCase().includes(term)
+            );
+            renderData(filtered);
+        });
+
+        function copyToClipboard() {
+            const title = document.getElementById('modalTitle').textContent;
+            const body = document.getElementById('modalBody').textContent;
+            const fullText = `${title}\n\n${body}`;
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = fullText; dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+            const btn = document.getElementById('btnShare');
+            const original = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-green-500"></i> <span class="text-green-500">COPIADO!</span>`;
+            initIcons();
+            setTimeout(() => { btn.innerHTML = original; initIcons(); }, 2000);
+        }
+
+        window.onload = () => { loadData(); initIcons(); };
+    </script>
+</body>
+</html>
