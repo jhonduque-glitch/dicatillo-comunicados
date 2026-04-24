@@ -39,7 +39,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.08), transparent);
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
             transform: rotate(45deg);
             transition: all 0.7s;
             pointer-events: none;
@@ -74,36 +74,77 @@
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #fdfdfd; }
         ::-webkit-scrollbar-thumb { background: var(--zoco-red); border-radius: 10px; }
+
+        /* Estilo compacto para los indicadores del header */
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body class="min-h-screen antialiased">
 
-    <!-- Header Section -->
+    <!-- Header Section Compacta -->
     <header class="bg-white/95 backdrop-blur-md border-b border-slate-100 sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <div class="zoco-gradient shadow-xl shadow-red-900/30 p-3 rounded-2xl text-white transform -rotate-2">
-                    <i data-lucide="megaphone" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter italic">Dicatillo</h1>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
-                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Canal Informativo</p>
+        <div class="max-w-6xl mx-auto px-6 py-4">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <!-- Branding y Estatus -->
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-3">
+                        <div class="zoco-gradient shadow-lg shadow-red-900/20 p-2.5 rounded-xl text-white transform -rotate-2">
+                            <i data-lucide="megaphone" class="w-5 h-5"></i>
+                        </div>
+                        <h1 class="text-xl md:text-2xl font-black text-slate-900 tracking-tighter italic leading-none">Dicatillo</h1>
+                    </div>
+
+                    <!-- Indicadores incorporados al lado del título (Versión Desktop/Tablet) -->
+                    <div class="hidden sm:flex items-center gap-3 border-l border-slate-100 pl-6">
+                        <!-- Estado Red -->
+                        <div class="zoco-gradient text-white glass-shine status-pill shadow-md">
+                            <div id="statusDot" class="w-1.5 h-1.5 bg-green-400 rounded-full shadow-[0_0_8px_#4ade80]"></div>
+                            <i data-lucide="wifi" class="w-3 h-3 opacity-60"></i>
+                            <span id="connectionStatus">ACTIVO</span>
+                        </div>
+                        <!-- Última Entrada -->
+                        <div class="bg-slate-50 border border-slate-100 text-slate-400 status-pill">
+                            <i data-lucide="clock-3" class="w-3 h-3 text-red-700/40"></i>
+                            <span class="opacity-50">FIN:</span>
+                            <span id="statRecent" class="text-slate-800 truncate max-w-[120px]">--</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="flex items-center gap-3">
-                <div class="relative flex-1 md:w-80">
-                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                    <input type="text" id="searchBar" placeholder="Buscar registros..." 
-                        class="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-transparent focus:border-red-600/20 rounded-2xl text-sm outline-none transition-all focus:bg-white shadow-inner">
+                <!-- Búsqueda y Acciones -->
+                <div class="flex items-center gap-3">
+                    <div class="relative flex-1 md:w-64 lg:w-80">
+                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400"></i>
+                        <input type="text" id="searchBar" placeholder="Filtrar registros..." 
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-2 border-transparent focus:border-red-600/20 rounded-xl text-xs outline-none transition-all focus:bg-white shadow-inner font-medium">
+                    </div>
+                    <button onclick="loadData()" id="refreshBtn" class="p-2.5 bg-white border-2 border-slate-100 text-slate-700 rounded-xl hover:border-red-700 hover:text-red-700 transition-all active:scale-95 group">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500"></i>
+                    </button>
                 </div>
-                <button onclick="loadData()" id="refreshBtn" class="p-3 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl hover:border-red-700 hover:text-red-700 transition-all active:scale-95 shadow-sm flex items-center gap-2 font-black group">
-                    <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500"></i>
-                    <span class="text-[9px] tracking-widest hidden md:inline">REFRESCAR</span>
-                </button>
+            </div>
+            
+            <!-- Indicadores para Móviles (se muestran abajo del logo solo en pantallas muy pequeñas) -->
+            <div class="flex sm:hidden items-center gap-2 mt-4 pt-4 border-t border-slate-50 overflow-x-auto no-scrollbar">
+                <div class="zoco-gradient text-white status-pill min-w-max">
+                    <span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                    <span>SISTEMA ACTIVO</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 text-slate-800 status-pill min-w-max">
+                    <i data-lucide="clock" class="w-3 h-3 text-red-700/40"></i>
+                    <span id="statRecentMobile">--</span>
+                </div>
             </div>
         </div>
     </header>
@@ -112,34 +153,7 @@
         <!-- Error Container -->
         <div id="statusContainer" class="hidden mb-8 p-5 rounded-3xl border-2 border-red-100 bg-red-50 text-red-900 font-bold"></div>
 
-        <!-- Dashboard Stats (Ajustado a 2 columnas) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <!-- Última Entrada -->
-            <div class="bg-slate-50 border-2 border-slate-100 p-6 rounded-[32px] flex items-center justify-between group">
-                <div>
-                    <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] mb-1">Última Entrada</p>
-                    <h3 id="statRecent" class="text-lg font-black text-slate-800 truncate max-w-[200px] md:max-w-[300px] italic tracking-tighter">--</h3>
-                </div>
-                <div class="bg-red-50 p-3 rounded-2xl text-red-700 group-hover:scale-110 transition-transform shadow-sm">
-                    <i data-lucide="clock-3" class="w-6 h-6"></i>
-                </div>
-            </div>
-
-            <!-- Estado Red (Wi-Fi) -->
-            <div class="zoco-gradient p-6 rounded-[32px] text-white shadow-xl shadow-red-900/20 glass-shine flex items-center justify-between group">
-                <div>
-                    <p class="text-white/40 text-[9px] font-black uppercase tracking-[0.2em] mb-1">Estado Red</p>
-                    <h3 id="connectionStatus" class="text-sm font-black flex items-center gap-2 tracking-widest uppercase">
-                        <span class="w-1.5 h-1.5 bg-green-400 rounded-full shadow-[0_0_8px_#4ade80]"></span>
-                        ACTIVO
-                    </h3>
-                </div>
-                <div class="bg-white/10 p-3 rounded-2xl group-hover:scale-110 transition-transform">
-                    <i data-lucide="wifi" class="w-6 h-6"></i>
-                </div>
-            </div>
-        </div>
-
+        <!-- Título de Sección -->
         <div class="flex items-center justify-between mb-8 border-b border-slate-50 pb-6">
             <h2 class="text-xl font-black text-slate-800 flex items-center gap-3 tracking-tighter italic">
                 <i data-lucide="layout-grid" class="w-6 h-6 text-red-700"></i>
@@ -147,7 +161,7 @@
             </h2>
             <div class="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <i data-lucide="history" class="w-3 h-3"></i>
-                Auto-Update: 30s
+                Ciclo: 30s
             </div>
         </div>
 
@@ -167,8 +181,8 @@
             <div class="bg-red-50 p-10 rounded-full mb-8">
                 <i data-lucide="search-x" class="w-16 h-16 text-red-200"></i>
             </div>
-            <h3 class="text-2xl font-black text-slate-800 tracking-tighter">Sin coincidencias</h3>
-            <p class="text-slate-400 mt-3 max-w-sm mx-auto font-medium">Prueba con otros términos de búsqueda.</p>
+            <h3 class="text-2xl font-black text-slate-800 tracking-tighter">Sin registros</h3>
+            <p class="text-slate-400 mt-3 max-w-sm mx-auto font-medium">No hay coincidencias en el archivo histórico.</p>
             <button onclick="clearSearch()" class="mt-8 px-10 py-3 zoco-gradient text-white rounded-2xl font-bold hover:opacity-90 shadow-lg shadow-red-900/20">Ver todo</button>
         </div>
     </main>
@@ -252,10 +266,12 @@
 
         async function loadData() {
             const statusLabel = document.getElementById('connectionStatus');
+            const statusDot = document.getElementById('statusDot');
             const timestamp = new Date().getTime();
             const targetUrl = `${BASE_URL}&t=${timestamp}`;
 
-            statusLabel.innerHTML = `<span class="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></span> ACTUALIZANDO`;
+            statusLabel.textContent = "ACTUALIZANDO";
+            statusDot.className = "w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse";
 
             try {
                 let response;
@@ -278,7 +294,12 @@
                 
                 allData.reverse(); 
                 
-                document.getElementById('statRecent').textContent = allData[0]?.Titulo || '--';
+                // Actualizar info compacta en header
+                const recentTitle = allData[0]?.Titulo || '--';
+                document.getElementById('statRecent').textContent = recentTitle;
+                if(document.getElementById('statRecentMobile')) {
+                    document.getElementById('statRecentMobile').textContent = recentTitle;
+                }
                 
                 const searchTerm = document.getElementById('searchBar').value.trim();
                 if (!searchTerm) {
@@ -291,10 +312,12 @@
                     renderData(filtered);
                 }
                 
-                statusLabel.innerHTML = `<span class="w-1.5 h-1.5 bg-green-400 rounded-full shadow-[0_0_8px_#4ade80]"></span> ACTIVO`;
+                statusLabel.textContent = "ACTIVO";
+                statusDot.className = "w-1.5 h-1.5 bg-green-400 rounded-full shadow-[0_0_8px_#4ade80]";
                 
             } catch (error) {
-                statusLabel.innerHTML = `<span class="w-1.5 h-1.5 bg-red-400 rounded-full"></span> ERROR`;
+                statusLabel.textContent = "ERROR";
+                statusDot.className = "w-1.5 h-1.5 bg-red-400 rounded-full";
             }
         }
 
