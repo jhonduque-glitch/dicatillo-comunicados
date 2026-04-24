@@ -76,8 +76,10 @@
                     <input type="text" id="searchBar" placeholder="Buscar avisos..." 
                         class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-transparent border-2 focus:border-blue-500/50 rounded-xl text-sm outline-none transition-all focus:bg-white dark:focus:bg-slate-800">
                 </div>
-                <button onclick="loadData()" class="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 shadow-sm">
-                    <i data-lucide="refresh-cw" class="w-5 h-5" id="refreshIcon"></i>
+                <!-- Botón estático de actualización -->
+                <button onclick="loadData()" id="refreshBtn" class="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 shadow-sm flex items-center gap-2" title="Actualizar ahora">
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    <span class="text-xs font-bold hidden md:inline">ACTUALIZAR</span>
                 </button>
             </div>
         </div>
@@ -107,9 +109,9 @@
                 <i data-lucide="layout-grid" class="w-6 h-6 text-blue-600"></i>
                 Últimas Publicaciones
             </h2>
-            <div class="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
-                <i data-lucide="info" class="w-4 h-4"></i>
-                Actualizado ahora
+            <div class="text-[10px] text-slate-400 flex items-center gap-1.5 font-bold uppercase tracking-tighter">
+                <i data-lucide="clock" class="w-3 h-3"></i>
+                Auto-refresco: 30s
             </div>
         </div>
 
@@ -214,13 +216,12 @@
 
         async function loadData() {
             const container = document.getElementById('comunicadosContainer');
-            const refreshIcon = document.getElementById('refreshIcon');
             const statusBox = document.getElementById('statusContainer');
             const statusLabel = document.getElementById('connectionStatus');
             
-            refreshIcon.classList.add('animate-spin');
+            // Eliminada la animación de la rueletita (refreshIcon)
             statusBox.classList.add('hidden');
-            statusLabel.innerHTML = `<span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span> Sincronizando...`;
+            statusLabel.innerHTML = `<span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span> Actualizando...`;
             statusLabel.className = "text-sm font-bold text-amber-500 flex items-center gap-2";
             
             const timestamp = new Date().getTime();
@@ -246,7 +247,19 @@
                 })).filter(item => item.Titulo || item.Comunicado);
                 
                 allData.reverse(); 
-                renderData(allData);
+                
+                // Solo renderizar si el usuario no está buscando algo activamente
+                const searchTerm = document.getElementById('searchBar').value.trim();
+                if (!searchTerm) {
+                    renderData(allData);
+                } else {
+                    // Si está buscando, aplicar el filtro a los nuevos datos recibidos
+                    const filtered = allData.filter(item => 
+                        (item.Titulo || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+                        (item.Comunicado || "").toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                    renderData(filtered);
+                }
                 
                 statusLabel.innerHTML = `<span class="w-2 h-2 bg-green-500 rounded-full"></span> Conectado`;
                 statusLabel.className = "text-sm font-bold text-green-500 flex items-center gap-2";
@@ -257,8 +270,6 @@
                 statusBox.classList.remove('hidden');
                 statusLabel.innerHTML = `<span class="w-2 h-2 bg-red-500 rounded-full"></span> Desconectado`;
                 statusLabel.className = "text-sm font-bold text-red-500 flex items-center gap-2";
-            } finally {
-                setTimeout(() => refreshIcon.classList.remove('animate-spin'), 600);
             }
         }
 
@@ -371,7 +382,13 @@
             setTimeout(() => { btn.innerHTML = original; initIcons(); }, 2000);
         }
 
-        window.onload = () => { loadData(); initIcons(); };
+        window.onload = () => { 
+            loadData(); 
+            initIcons();
+            
+            // Configurar refresco automático cada 30 segundos
+            setInterval(loadData, 30000);
+        };
     </script>
 </body>
 </html>
